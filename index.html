@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Gear Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            margin-top: 20px;
+            color: #333;
+        }
+
+        .product-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .product {
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px;
+            width: 300px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .product .emoji {
+            font-size: 80px;
+            margin-bottom: 10px;
+        }
+
+        .product h2 {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .product p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .button {
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 8px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+        }
+
+        .button.view-product {
+            background-color: #008CBA; /* Blue */
+        }
+
+        .button.add-to-cart {
+            background-color: #04AA6D; /* Green */
+        }
+
+        .button:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px #666;
+        }
+
+        .cart-items {
+            width: 80%;
+            max-width: 800px;
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-total {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .purchase-button {
+            background-color: #f44336; /* Red */
+            border: none;
+            color: white;
+            padding: 12px 28px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        /* Modal styling */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .modal-content .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal-content .close:hover,
+        .modal-content .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal .product-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .modal .product-description {
+            font-size: 16px;
+            color: #333;
+            margin: 20px 0;
+        }
+    </style>
+    <script>
+        (function(name, path, ctx){
+            ctx[name] = ctx[name] || {
+                ready: function(fn){
+                    var h = document.getElementsByTagName('head')[0],
+                        s = document.createElement('script'),
+                        loaded;
+                    s.onload = s.onerror = s.onreadystatechange = function(){
+                        if ((s.readyState && !(/^c|loade/.test(s.readyState))) || loaded) {
+                            return;
+                        }
+                        s.onload = s.onreadystatechange = null;
+                        loaded = 1;
+                        ctx[name].ready(fn);
+                    };
+                    s.async = 1;
+                    s.src = path;
+                    h.parentNode.insertBefore(s, h);
+                }
+            };
+        })('KeenTracking', 'https://cdn.jsdelivr.net/npm/keen-tracking@4/dist/keen-tracking.min.js', this);
+
+        KeenTracking.ready(function() {
+            const client = new KeenTracking({
+                projectId: '66bd283e6200534932f3ba74',
+                writeKey: '2b712996882e4ae8445044b27a795b5be4a07e0fa5705e019d5b149acefa90682cdc9b339848ce774bfc4e12893f6d549d8e88b598797d3917be6a60f25890bc71635a7fe0fa5e27cab8c81a810f539c0b73439c671defc956a17bc351a25020'
+            });
+
+            // Generate a UUID to track the user session
+            const userUUID = generateUUID();
+            console.log("Your unique user id is: " + userUUID);
+
+            // Track initial page view
+            client.recordEvent('page_view', {
+                uuid: userUUID,
+                page: 'Music Gear Store',
+                timestamp: new Date().toISOString()
+            });
+            console.log('Page view event tracked:', {
+                uuid: userUUID,
+                page: 'Music Gear Store',
+                timestamp: new Date().toISOString()
+            });
+
+            // Add event listeners to product detail buttons
+            const pdpButtons = document.querySelectorAll('.view-product');
+            pdpButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    const productName = this.dataset.productName;
+                    const productDescription = getProductDescription(productName);
+                    const productIcon = getProductIcon(productName);
+                    const pdpEvent = {
+                        uuid: userUUID,
+                        product_id: productId,
+                        product_name: productName,
+                        timestamp: new Date().toISOString()
+                    };
+                    client.recordEvent('pdp_view', pdpEvent);
+                    console.log('PDP view event tracked:', pdpEvent);
+
+                    showModal(productIcon, productDescription);
+                });
+            });
+
+            // Add event listeners to add to cart buttons
+            const cart = [];
+            const addToCartButtons = document.querySelectorAll('.add-to-cart');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.dataset.productId;
+                    const productName = this.dataset.productName;
+                    const productPrice = parseFloat(this.dataset.productPrice);
+                    cart.push({ id: productId, name: productName, price: productPrice });
+
+                    const cartEvent = {
+                        uuid: userUUID,
+                        product_id: productId,
+                        product_name: productName,
+                        cart_contents: cart.map(item => item.name).join(', '),
+                        cart_value: cart.reduce((total, item) => total + item.price, 0),
+                        timestamp: new Date().toISOString()
+                    };
+                    client.recordEvent('add_to_cart', cartEvent);
+                    console.log('Add to cart event tracked:', cartEvent);
+
+                    updateCartDisplay(cart);
+                });
+            });
+
+            // Purchase button click event
+            document.querySelector('.purchase-button').addEventListener('click', function() {
+                const totalValue = cart.reduce((total, item) => total + item.price, 0);
+                const purchaseEvent = {
+                    uuid: userUUID,
+                    items_purchased: cart,
+                    total_items: cart.length,
+                    total_value: totalValue,
+                    timestamp: new Date().toISOString()
+                };
+                client.recordEvent('purchase', purchaseEvent);
+                console.log('Purchase event tracked:', purchaseEvent);
+                
+                showModal("🛒", "Purchase completed! Total value: $" + totalValue.toFixed(2) + ". A copy of your receipt has been sent to your email.");
+            });
+
+            // Helper function to update cart display
+            function updateCartDisplay(cart) {
+                const cartDisplay = document.querySelector('.cart-items');
+                const totalValue = cart.reduce((total, item) => total + item.price, 0);
+                cartDisplay.innerHTML = '<strong>Cart Items:</strong><br>' + cart.map(item => item.name + ' - $' + item.price.toFixed(2)).join('<br>');
+                document.querySelector('.cart-total').innerHTML = 'Total Value: $' + totalValue.toFixed(2);
+            }
+
+            // Helper function to generate a UUID
+            function generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            // Show modal function with custom icon and content
+            function showModal(icon, content) {
+                const modal = document.getElementById("cartModal");
+                const modalIcon = modal.querySelector('.product-icon');
+                const modalContent = modal.querySelector('.product-description');
+                modalIcon.innerHTML = icon;
+                modalContent.innerHTML = content;
+                modal.style.display = "block";
+            }
+
+            // Close modal when clicking the close button or outside of the modal
+            document.querySelector('.modal .close').onclick = function() {
+                const modal = document.getElementById("cartModal");
+                modal.style.display = "none";
+            };
+
+            window.onclick = function(event) {
+                const modal = document.getElementById("cartModal");
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                }
+            };
+
+            // Function to return product descriptions
+            function getProductDescription(productName) {
+                switch (productName) {
+                    case 'Guitar':
+                        return 'This guitar is crafted from premium woods and delivers a rich, warm tone perfect for any genre. Ideal for both beginners and professionals.';
+                    case 'Turntable':
+                        return 'Our turntable offers unparalleled sound quality and a sleek design. It’s a must-have for any vinyl enthusiast.';
+                    case 'Synthesizer':
+                        return 'The synthesizer is equipped with a variety of features, making it a versatile instrument for creating a wide range of sounds.';
+                    default:
+                        return 'Product details are currently unavailable.';
+                }
+            }
+
+            // Function to return product icons
+            function getProductIcon(productName) {
+                switch (productName) {
+                    case 'Guitar':
+                        return '🎸';
+                    case 'Turntable':
+                        return '🎚️🎛️🎧';
+                    case 'Synthesizer':
+                        return '🎹';
+                    default:
+                        return 'ℹ️';
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+
+    <h1>Music Gear Store</h1>
+
+    <div class="product-container">
+        <div class="product">
+            <div class="emoji">🎸</div>
+            <h2>Guitar</h2>
+            <p>Price: $500</p>
+            <button class="button view-product" data-product-id="1" data-product-name="Guitar">View Product</button>
+            <button class="button add-to-cart" data-product-id="1" data-product-name="Guitar" data-product-price="500">Add to Cart</button>
+        </div>
+
+        <div class="product">
+            <div class="emoji">🎚️🎛️🎧</div>
+            <h2>Turntable</h2>
+            <p>Price: $300</p>
+            <button class="button view-product" data-product-id="2" data-product-name="Turntable">View Product</button>
+            <button class="button add-to-cart" data-product-id="2" data-product-name="Turntable" data-product-price="300">Add to Cart</button>
+        </div>
+
+        <div class="product">
+            <div class="emoji">🎹</div>
+            <h2>Synthesizer</h2>
+            <p>Price: $700</p>
+            <button class="button view-product" data-product-id="3" data-product-name="Synthesizer">View Product</button>
+            <button class="button add-to-cart" data-product-id="3" data-product-name="Synthesizer" data-product-price="700">Add to Cart</button>
+        </div>
+    </div>
+
+    <div class="cart-items">
+        <strong>Cart Items:</strong><br>
+        <!-- Cart items will be listed here -->
+    </div>
+
+    <div class="cart-total">
+        Total Value: $0.00
+    </div>
+
+    <button class="purchase-button">Purchase</button>
+
+    <!-- Modal -->
+    <div id="cartModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <span class="product-icon"></span>
+            <p class="product-description"></p>
+        </div>
+    </div>
+
+</body>
+</html>
